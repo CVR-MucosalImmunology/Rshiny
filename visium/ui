@@ -1,0 +1,46 @@
+fluidPage(
+  fluidRow(
+    column(3,
+           wellPanel(
+             titlePanel("Datasets"),
+             uiOutput("dataset_selector_spat"),
+             actionButton("update_dataset_spat", "Update Dataset", width = "100%")
+           ),
+           wellPanel(
+             titlePanel("Metadata Selector"),
+             uiOutput("metadata_selector_spat")  # Dropdown for metadata selection
+           ), 
+           fluidRow(
+             column(12, wellPanel(plotOutput("meta_plot", height = "600px")))
+           ),
+           fluidRow(
+             column(6, textInput("pt_alpha3", "pt/alpha:", value = "1.6,1,1,1", width = "100%")),
+             column(6, textInput("min_max3", "Min_Max:", value = "NA,NA", width = "100%"))
+           )
+             
+    ),
+    column(9,
+           fluidRow(
+             column(6, wellPanel(plotOutput("feature_plot_spat1", height = "600px"))),
+             column(6, wellPanel(plotOutput("feature_plot_spat2", height = "600px")))
+           ),
+           fluidRow(
+             column(3, textInput("filename_prefix_spat", "Filename prefix:", value = "user", width = "100%")),
+             column(3, textInput("feature_gene_spat1", "Gene to Plot 1:", value = "CD3E", width = "100%")),
+             column(3, textInput("feature_gene_spat2", "Gene to Plot 2:", value = "MS4A1", width = "100%")),
+             column(3,
+                    tags$div(
+                      HTML("<strong>Export Feature Plots:</strong>"),
+                      actionButton("export_feature_spat", "Export Feature Plots", width = "100%")
+                    )
+             )
+           ),
+           fluidRow(
+             column(3, textInput("pt_alpha1", "pt/alpha:", value = "1.6,1,1,1", width = "100%")),
+             column(3, textInput("min_max1", "Min_Max:", value = "NA,NA", width = "100%")),
+             column(3, textInput("pt_alpha2", "pt/alpha:", value = "1.6,1,1,1", width = "100%")),
+             column(3, textInput("min_max2", "Min_Max:", value = "NA,NA", width = "100%"))
+           )
+    )
+  )
+)
