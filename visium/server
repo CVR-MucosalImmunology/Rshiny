@@ -1,0 +1,145 @@
+function(input, output, session) {
+  
+  # Reactive variable for Spatial data
+  seurat_data_spat <- reactiveVal(NULL)
+  
+  # Dataset selector for Spatial
+  output$dataset_selector_spat <- renderUI({
+    rds_files <- list.files(path = "vis/", pattern = "*.rds", full.names = FALSE)
+    selectInput("selected_dataset_spat", "Choose a Spatial dataset:", choices = rds_files, selected = NULL)
+  })
+  
+  # Load Spatial dataset and update UI
+  observeEvent(input$update_dataset_spat, {
+    req(input$selected_dataset_spat)
+    
+    gc()  # Clean memory before loading new data
+    
+    data <- readRDS(file.path("vis/", input$selected_dataset_spat))
+    seurat_data_spat(data)
+    
+    gc()  # Clean memory after loading new data
+    
+    # Extract metadata columns that match the allowed list
+    metadata_columns <- colnames(seurat_data_spat()@meta.data)
+    available_metadata <- metadata_columns[metadata_columns %in% allowed_metadata]
+    
+    # If there are matching metadata columns, generate dropdown, else display a message
+    if (length(available_metadata) > 0) {
+      output$metadata_selector_spat <- renderUI({
+        selectInput("selected_metadata_spat", "Choose a Metadata Column:", choices = available_metadata, selected = available_metadata[1])
+      })
+    } else {
+      output$metadata_selector_spat <- renderUI({
+        tags$p("No relevant metadata columns found in this dataset.")
+      })
+    }
+    
+    # First SpatialFeaturePlot
+    output$feature_plot_spat1 <- renderPlot({
+      feature_gene <- input$feature_gene_spat1
+      if (!(feature_gene %in% rownames(seurat_data_spat()))) {
+        feature_gene <- "CD3E"
+        ggtitle_text <- paste0(input$feature_gene_spat1, " is not found in the dataset, displaying default CD3E")
+      } else {
+        ggtitle_text <- feature_gene
+      }
+      SpatialFeaturePlot(seurat_data_spat(), features = input$feature_gene_spat1, 
+                         alpha = c(as.numeric(str_split(input$pt_alpha1, "\\,")[[1]][2]), as.numeric(str_split(input$pt_alpha1, "\\,")[[1]][3])), 
+                         pt.size = as.numeric(str_split(input$pt_alpha1, "\\,")[[1]][1]), 
+                         min.cutoff = if(is.na(str_split(input$min_max1, "\\,")[[1]][1])){NA}else{as.numeric(str_split(input$min_max1, "\\,")[[1]][1])}, 
+                         max.cutoff = if(is.na(str_split(input$min_max1, "\\,")[[1]][2])){NA}else{as.numeric(str_split(input$min_max1, "\\,")[[1]][2])},
+                         image.alpha = as.numeric(str_split(input$pt_alpha1, "\\,")[[1]][4])
+      ) + 
+        ggtitle(ggtitle_text) + NoLegend() + NoAxes()+RestoreLegend(position = "right")
+    })
+    
+    # Second SpatialFeaturePlot
+    output$feature_plot_spat2 <- renderPlot({
+      feature_gene <- input$feature_gene_spat2
+      if (!(feature_gene %in% rownames(seurat_data_spat()))) {
+        feature_gene <- "MS4A1"
+        ggtitle_text <- paste0(input$feature_gene_spat2, " is not found in the dataset, displaying default MS4A1")
+      } else {
+        ggtitle_text <- feature_gene
+      }
+      SpatialFeaturePlot(seurat_data_spat(), features = feature_gene, alpha = c(as.numeric(str_split(input$pt_alpha2, "\\,")[[1]][2]), as.numeric(str_split(input$pt_alpha2, "\\,")[[1]][3])), 
+                         pt.size = as.numeric(str_split(input$pt_alpha2, "\\,")[[1]][1]),                         
+                         min.cutoff = if(is.na(str_split(input$min_max2, "\\,")[[1]][1])){NA}else{as.numeric(str_split(input$min_max2, "\\,")[[1]][1])}, 
+                         max.cutoff = if(is.na(str_split(input$min_max2, "\\,")[[1]][2])){NA}else{as.numeric(str_split(input$min_max2, "\\,")[[1]][2])},
+                         image.alpha = as.numeric(str_split(input$pt_alpha2, "\\,")[[1]][4])
+      ) + 
+        ggtitle(ggtitle_text) + NoLegend() + NoAxes()+RestoreLegend(position = "right")
+    })
+  
+  output$meta_plot <- renderPlot({
+    feature_gene <- input$selected_metadata_spat
+    ggtitle_text <- feature_gene
+    
+    SpatialFeaturePlot(seurat_data_spat(), features = feature_gene, alpha = c(as.numeric(str_split(input$pt_alpha3, "\\,")[[1]][2]), as.numeric(str_split(input$pt_alpha3, "\\,")[[1]][3])), 
+                       pt.size = as.numeric(str_split(input$pt_alpha3, "\\,")[[1]][1]),                         
+                       min.cutoff = if(is.na(str_split(input$min_max3, "\\,")[[1]][1])){NA}else{as.numeric(str_split(input$min_max3, "\\,")[[1]][1])}, 
+                       max.cutoff = if(is.na(str_split(input$min_max3, "\\,")[[1]][2])){NA}else{as.numeric(str_split(input$min_max3, "\\,")[[1]][2])},
+                       image.alpha = as.numeric(str_split(input$pt_alpha3, "\\,")[[1]][4])
+    ) + 
+      ggtitle(ggtitle_text) + NoLegend() + NoAxes()+RestoreLegend(position = "right")
+  })
+})
+  
+  # Export Feature Plots
+  observeEvent(input$export_feature_spat, {
+    req(seurat_data_spat())
+    
+    current_time <- format(Sys.time(), "%Y%m%d_%H%M")
+    dataset_name_spat <- gsub("\\.rds$", "", input$selected_dataset_spat)
+    
+    # Create output directory if missing
+    if (!dir.exists(file.path(wd, "output"))) {
+      dir.create(file.path(wd, "output"))
+    }
+    
+    prefix_spat <- input$filename_prefix_spat
+    feature_filename_spat1 <- file.path(wd, "output", paste0(current_time, "_", dataset_name_spat, "_", prefix_spat, "_", input$feature_gene_spat1, "_Feature.pdf"))
+    feature_filename_spat2 <- file.path(wd, "output", paste0(current_time, "_", dataset_name_spat, "_", prefix_spat, "_", input$feature_gene_spat2, "_Feature.pdf"))
+    feature_filename_spat3 <- file.path(wd, "output", paste0(current_time, "_", dataset_name_spat, "_", prefix_spat, "_", input$selected_metadata_spat, "_Meta.pdf"))
+    
+    # Export first FeaturePlot
+    pdf(feature_filename_spat1, width = width, height = height)
+    print(
+      SpatialFeaturePlot(seurat_data_spat(), features = input$feature_gene_spat1, 
+                         alpha = c(as.numeric(str_split(input$pt_alpha1, "\\,")[[1]][2]), as.numeric(str_split(input$pt_alpha1, "\\,")[[1]][3])), 
+                         pt.size = as.numeric(str_split(input$pt_alpha1, "\\,")[[1]][1]),                         
+                         min.cutoff = if(is.na(str_split(input$min_max1, "\\,")[[1]][1])){NA}else{as.numeric(str_split(input$min_max1, "\\,")[[1]][1])}, 
+                         max.cutoff = if(is.na(str_split(input$min_max1, "\\,")[[1]][2])){NA}else{as.numeric(str_split(input$min_max1, "\\,")[[1]][2])},
+                         image.alpha = as.numeric(str_split(input$pt_alpha1, "\\,")[[1]][4]))+
+        NoLegend() + NoAxes()+RestoreLegend(position = "right")
+    )
+    dev.off()
+    
+    # Export second FeaturePlot
+    pdf(feature_filename_spat2, width = width, height = height)
+    print(
+      SpatialFeaturePlot(seurat_data_spat(), features = input$feature_gene_spat2, 
+                         alpha = c(as.numeric(str_split(input$pt_alpha2, "\\,")[[1]][2]), as.numeric(str_split(input$pt_alpha2, "\\,")[[1]][3])), 
+                         pt.size = as.numeric(str_split(input$pt_alpha2, "\\,")[[1]][1]),                         
+                         min.cutoff = if(is.na(str_split(input$min_max2, "\\,")[[1]][1])){NA}else{as.numeric(str_split(input$min_max2, "\\,")[[1]][1])}, 
+                         max.cutoff = if(is.na(str_split(input$min_max2, "\\,")[[1]][2])){NA}else{as.numeric(str_split(input$min_max2, "\\,")[[1]][2])},
+                         image.alpha = as.numeric(str_split(input$pt_alpha2, "\\,")[[1]][4]))+
+        NoLegend() + NoAxes()+RestoreLegend(position = "right")
+    )
+    dev.off()
+    # Export Mera
+    pdf(feature_filename_spat3, width = width, height = height)
+    print(
+      SpatialFeaturePlot(seurat_data_spat(), features = input$selected_metadata_spat, 
+                         alpha = c(as.numeric(str_split(input$pt_alpha3, "\\,")[[1]][2]), 
+                                   as.numeric(str_split(input$pt_alpha3, "\\,")[[1]][3])), 
+                         pt.size = as.numeric(str_split(input$pt_alpha3, "\\,")[[1]][1]),                         
+                         min.cutoff = if(is.na(str_split(input$min_max3, "\\,")[[1]][1])){NA}else{as.numeric(str_split(input$min_max3, "\\,")[[1]][1])}, 
+                         max.cutoff = if(is.na(str_split(input$min_max3, "\\,")[[1]][2])){NA}else{as.numeric(str_split(input$min_max3, "\\,")[[1]][2])},
+                         image.alpha = as.numeric(str_split(input$pt_alpha3, "\\,")[[1]][4])
+      ) + NoLegend() + NoAxes()+RestoreLegend(position = "right")
+    )
+    dev.off()
+  })
+}
