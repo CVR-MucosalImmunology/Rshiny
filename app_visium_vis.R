@@ -1,14 +1,10 @@
 # Set working directory
-wd <- dirname(rstudioapi::getActiveDocumentContext()$path) 
+wd <- getwd()
 
 library(shiny)
 library(Seurat)
 library(ggplot2)
 library(stringr)
-
-default <- c("EPCAM,COL1A1,CD3E,MS4A1,CD79A,LYZ,MKI67")
-height <- 5
-width <- 5
 
 # List of allowed metadata columns
 allowed_metadata <- c("dapi_avg", "cd11c_avg", "lang_avg", "bcell_avg", "gland", "la_in", "la_out", "epi", "epi_dist", 
