@@ -1,16 +1,10 @@
 # Set working directory
-wd <- dirname(rstudioapi::getActiveDocumentContext()$path) 
+wd <- getwd()
 
 library(shiny)
 library(Seurat)
 library(ggplot2)
 library(stringr)
-
-default <- c("EPCAM,COL1A1,CD3E,MS4A1,CD79A,LYZ,MKI67")
-height <- 5
-width <- 5
-dot_width <- 10
-dot_height <- 5
 
 # UI for Single Cell App
 ui <- fluidPage(
