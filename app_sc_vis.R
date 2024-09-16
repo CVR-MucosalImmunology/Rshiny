@@ -86,7 +86,7 @@ server <- function(input, output, session) {
     gc()  # Clean memory after loading new data
     
     # Unique Idents
-    idents <- unique(Idents(seurat_data()))
+    idents <- levels(Idents(seurat_data()))
     
     # Generate dynamic text boxes for Idents
     output$idents_panel <- renderUI({
