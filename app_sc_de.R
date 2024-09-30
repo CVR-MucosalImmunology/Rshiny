@@ -78,7 +78,7 @@ server <- function(input, output, session) {
   # Read in the dataset and populate the groupby dropdown
   observeEvent(input$update_dataset, {
     req(input$selected_dataset)
-
+    print(paste0("Loading data:",input$selected_dataset))
     # Load the dataset
     data <- readRDS(file.path("sc/", input$selected_dataset))
     data$default <- Idents(data)
