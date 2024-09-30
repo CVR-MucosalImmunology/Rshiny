@@ -1,4 +1,10 @@
+wd <- getwd()
 
+library(shiny)
+library(Seurat)
+library(ggplot2)
+library(stringr)
+library(dplyr)
 
 ui <- fluidPage(
   titlePanel("Single Cell RNA Analysis"),
