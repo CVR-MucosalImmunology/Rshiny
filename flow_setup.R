@@ -145,3 +145,4 @@ observeEvent(input$save, {
 })  
 
 }
+shinyApp(ui,server);rm(ui,server)
