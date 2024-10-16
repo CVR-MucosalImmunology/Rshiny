@@ -9,7 +9,7 @@ ui <- fluidPage(
          wellPanel(
              titlePanel("Markers"),
              uiOutput("marker_selector"),
-             numericInput("n_sample", "Subset samples by:", value=6000, width='100%'),
+             numericInput("n_sample", "Cells to subsample:", value=6000, width='100%'),
              actionButton("run_sample", "Run RPCA", width = "100%")
              
            )
