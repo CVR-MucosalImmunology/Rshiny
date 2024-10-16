@@ -9,7 +9,9 @@ ui <- fluidPage(
          wellPanel(
              titlePanel("Markers"),
              uiOutput("marker_selector"),
+             numericInput("n_sample", "Subset samples by:", value=6000, width='100%'),
              actionButton("run_sample", "Run RPCA", width = "100%")
+             
            )
   ),
   
@@ -147,8 +149,8 @@ ui <- fluidPage(
       return(d4)
     })
     processed_data_list2 <- lapply(processed_data_list, function(df) {
-      if (nrow(df) > 6000) {
-        df[sample(1:nrow(df), 6000), ]
+      if (nrow(df) > input$n_sample) {
+        df[sample(1:nrow(df), input$n_sample), ]
       } else {
         df  # Return the original df if it has fewer 
       }
